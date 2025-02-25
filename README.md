@@ -18,7 +18,7 @@ Additionally, you need to install the requirements in [requirements.txt](/requir
 
 ## Making a scheduler
 
-Schedulers are made with [create_schedule.py](create_schedule.py). Modify the respectify hyper parameters of the algorithm (line 18 to 43). Depending on your CPU and setting this may take a bit...
+Schedulers are made with [create_schedule.py](create_schedule.py). Modify the respective hyper parameters of the algorithm (lines 16 to 42). Depending on your CPU and setting this may take a bit...
 
 
 ## Training
@@ -29,7 +29,7 @@ Start training with
 ./run.sh [FIRST DEVICE] [LAST DEVICE] [SETTING] [SAMPLES PER MICROBATCH]
 ```
 
-Which will start all nodes from FIRST DEVICE to LAST DEVICE on this machine with a give SETTING (*random* for DT-FM Skip, *ca-partial* for SkipPipe with TC2, *non-ca-partial* for SkipPipe without TC2, or *baseline* for DT-FM). 
+Which will start all nodes from FIRST DEVICE to LAST DEVICE on this machine with a given SETTING (*random* for DT-FM Skip, *ca-partial* for SkipPipe with TC2, *non-ca-partial* for SkipPipe without TC2, or *baseline* for DT-FM). 
 
 
 ## Publication
