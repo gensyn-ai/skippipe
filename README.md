@@ -1,9 +1,10 @@
 # SkipPipe: Partial and Reordered Pipelining Framework for Training LLMs in Heterogeneous Networks
-This repository contains the code and instructions to replicate experiments of the paper titled ["SkipPipe: Partial and Reordered Pipelining Framework for Training LLMs in Heterogeneous Networks"](link).
+This repository contains the code and instructions to replicate experiments of the paper titled ["SkipPipe: Partial and Reordered Pipelining Framework for Training LLMs in Heterogeneous Networks"](https://arxiv.org/abs/2502.19913).
 
+![SkipPipe Figure](/assests/skippipe.png)
+An example of partial pipeline parallelism scheduling where each colored (solid or dashed) path represents a different microbatch. Each node in stage 0 sends out 2 microbatches, the first in solid, the second in dashed. Green backgrounds show the forward pass, while light orange - the backwards pass. For better visualisation, the loss and deembedding computations are omitted. Arrows show the prioritisation of the microbatches from forward to backward pass within the same node.
 
-
-## Requirements:
+## Requirements
 
 This code uses the following two repositories:
 
@@ -39,8 +40,9 @@ Which will start all nodes from FIRST DEVICE to LAST DEVICE on this machine with
   title={SkipPipe: Partial and Reordered Pipelining Framework for Training LLMs in Heterogeneous Networks}, 
   author={Blagoev, Nikolay and Chen, Lydia Y and Ersoy, O\u{g}uzhan},
   year={2025},
-  eprint={ },
+  eprint={2502.19913},
   archivePrefix={arXiv},
-  primaryClass={cs.DC}
+  primaryClass={cs.LG},
+  url={https://arxiv.org/abs/2502.19913},
 }
 ```
