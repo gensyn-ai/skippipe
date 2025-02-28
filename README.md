@@ -7,7 +7,8 @@ It is also highly fault tolerant - demonstrating robustness up to 50% node failu
 
 Unlike existing data parallel methods, SkipPipe can accommodate large model training. Since it shards the model itself across nodes, rather than simply sharding the dataset, SkipPipe reduces the memory footprint on each individual node and removes the cap on model size - allowing models of theoretically infinite size to be built across distributed, and decentralised, infrastructure. 
 
-![SkipPipe Figure](/assests/skippipe.png "An example of partial pipeline parallelism scheduling where each colored (solid or dashed) path represents a different microbatch. Each node in stage 0 sends out 2 microbatches, the first in solid, the second in dashed. Green backgrounds show the forward pass, while light orange - the backwards pass. For better visualisation, the loss and deembedding computations are omitted. Arrows show the prioritisation of the microbatches from forward to backward pass within the same node.")
+![SkipPipe Figure](/assests/skippipe.png)
+*An example of partial pipeline parallelism scheduling where each colored (solid or dashed) path represents a different microbatch. Each node in stage 0 sends out 2 microbatches, the first in solid, the second in dashed. Green backgrounds show the forward pass, while light orange - the backwards pass. For better visualisation, the loss and deembedding computations are omitted. Arrows show the prioritisation of the microbatches from forward to backward pass within the same node.")*
 
 ## Requirements
 
