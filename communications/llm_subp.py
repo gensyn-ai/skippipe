@@ -267,7 +267,7 @@ class SubP(object):
                     self.optimizer.step() # this also syncs across stage
                     
                     
-                    if self.iteration % 2000 == 0 and self.optimizer.dp_group.in_group == 0::
+                    if self.iteration % 2000 == 0 and self.optimizer.dp_group.in_group == 0:
                        save(self.net.state_dict(), f"{self.optimizer.dp_group.partition}.pth") 
                     cuda.empty_cache()
                     self.queue_out.put(Aggregate(0), True)
