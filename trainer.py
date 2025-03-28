@@ -154,7 +154,7 @@ if __name__ == '__main__':
         stream.set_lower(gossip)
         # delayer= DelayProtocol(delay_map,True)
         # delayer.set_lower(stream)
-        n = Peer(("127.0.0.1", 10015))
+        n = Peer(("10.132.0.4", 10015))
         if curr_id != 0:
             gossip.bootstrap_peers.append(n)
             time.sleep(1)
