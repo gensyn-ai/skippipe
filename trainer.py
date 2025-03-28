@@ -19,7 +19,7 @@ from schedulers.communication_costs import *
 
 # LLaMa 1.5B parameters:
 seq_l = 4096
-n_layers = 3 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
+n_layers = 4 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
 batch_size = int(argv[4])
 device = argv[5]
 dmodel = 2048

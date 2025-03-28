@@ -18,7 +18,7 @@ PAT_LENGTH = 4
 memory = 3 # memory per device
 
 
-LAYERS_PER_DEVICE = 3
+LAYERS_PER_DEVICE = 4
 SAMPLES_IN_MB = 2
 MB_COUNT = 6
 NUMBER_OF_NODES = 20
@@ -45,12 +45,13 @@ setting = "geo-distributed"
 # 5-clusters
 # ----- TO HERE -------
 locations = get_locations(setting)
+locations = ['Belgium', 'Canada', 'Germany', 'Iowa', 'Japan', 'LA', 'NL', 'Oregon', 'Singapore', 'Taiwan', 'London', 'Australia']
 computations = get_computations(setting)
 # get nodes:
 node_list = []
 while len(node_list) < NUMBER_OF_NODES:
     for v in locations:
-        
+        print(len(node_list),v)
         node_list.append(v)
         if len(node_list) == NUMBER_OF_NODES:
             break
@@ -87,7 +88,7 @@ bst = None
 score = float("inf")
 # Find best arrangement:
 for _ in range(1):
-    partitions, scores, _ = GCMA(g,partition_sizes=partition_sizes,trails=4000,population_size=100,factor=FACTOR)
+    partitions, scores, _ = GCMA(g,partition_sizes=partition_sizes,trails=8000,population_size=200,factor=FACTOR)
     ret = np.argmin(scores)
     if scores[ret] < score:
         score = scores[ret]

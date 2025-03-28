@@ -115,7 +115,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             count_per_partitions[v].clear()
         
         
-        if (len(solutions) >= 16//(delta) and not check_1) or (not check_1 and len(h) == 1 and len(solutions) > 1):
+        if (len(solutions) >= 16 and not check_1) or (not check_1 and len(h) == 1 and len(solutions) > 1):
             print(len(solutions),"viable solutions found")
             h = []
             solutions_considered.clear()
@@ -496,7 +496,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             # count_col = count_conflicts(g,results,count_per_node) if conflict_3 else 0
             # print(count_col)
             extra_h = np.sum(tmpvisitable)
-            if extra_h == tmpvisitable.shape[0]*tmpvisitable.shape[1]:
+            if extra_h == tmpvisitable.shape[0]*tmpvisitable.shape[1] or delta > 1:
                 extra_h = 0
             heapq.heappush(h,CBS_item(cost + heuristic + extra_h/(100**delta),-len(comb) if limit_TC1 else 0,results,comb, tmpvisitable, tmpvisitable_stages, "",speeds,conflict_3 ))
 
