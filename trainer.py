@@ -187,7 +187,7 @@ if __name__ == '__main__':
             trainingp.compute_time = compute_time
         subprocess.start()
         
-        me = StreamNode(my_peer , trainingp,ip_addr="127.0.0.1", port = 10015 if curr_id == 0 else port)
+        me = StreamNode(my_peer , trainingp,ip_addr="0.0.0.0", port = 10015 if curr_id == 0 else port)
         # print( "TCP", me.tcp_port)
 
         
