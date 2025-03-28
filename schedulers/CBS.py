@@ -59,7 +59,7 @@ def speed_ranking(speeds, el):
 def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [False, True, True], path_l = 4, memory = 3, mb_per_stage_max = 9,delta = 1,limit_TC1 = False):
     h: List[CBS_item] = []
     heapq.heapify(h)
-    
+    print(mb_per_stage_max,len(agents))
     visitable: Dict[int,List[int]] = np.full((len(agents),len(g.nodes)),1)
     visitable_stages = np.full((len(agents),len(partitions)),1)
     
@@ -115,7 +115,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             count_per_partitions[v].clear()
         
         
-        if (len(solutions) >= 32//(delta**2) and not check_1):
+        if (len(solutions) >= 16//(delta) and not check_1) or (not check_1 and len(h) == 1 and len(solutions) > 1):
             print(len(solutions),"viable solutions found")
             h = []
             solutions_considered.clear()
@@ -138,10 +138,11 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             visited[sol.visitable_stages.data.tobytes()] = True
         else:
             
-            if not sol.conflict_3 and np.sum(sol.visitable) < sol.visitable.shape[1]*sol.visitable.shape[0] and sol.visitable_stages.data.tobytes()+sol.visitable.data.tobytes() in visited:
+            if not sol.conflict_3 and np.sum(sol.visitable) < sol.visitable.shape[1]*sol.visitable.shape[0] and (sol.visitable_stages.data.tobytes()+sol.visitable.data.tobytes() in visited or sol.visitable.tobytes() in visited):
                 # print("duplicate")
                 continue
             visited[sol.visitable_stages.data.tobytes()+sol.visitable.data.tobytes()] = True
+            visited[sol.visitable.data.tobytes()] = True
 
 
         # check for conflicts
@@ -187,6 +188,8 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 
         
         conflicts = []
+        heuristic = 0
+        impossible = False
         flag = False
         # CONFLICT TYPE 2:
         if constraints[1]:
@@ -196,6 +199,10 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 if k == 0:
                     continue
                 if len(count_per_partitions[k]) > mb_per_stage_max:
+                    if flag:
+                        # heuristic += 0.001 * (len(count_per_partitions[k]) - mb_per_stage_max)
+                        heuristic += 0.0001
+                        continue
                     # we have found a partition with more than the max nodes per stage
                     flag = True
                     # print(k)
@@ -214,21 +221,26 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     count_per_partitions[k] = [ t for t in count_per_partitions[k] if t[0] not in exclude_agents]
                     
                     if len(exclude_agents) > mb_per_stage_max:
-                        continue
+                        impossible = True
+                        break
                     
-                    for comb in count_per_partitions[k]:
+                    for comb in itertools.combinations(count_per_partitions[k],1 if delta > 1 else ttl_count - mb_per_stage_max):
                         # print(comb)
+                        if len(conflicts) > (1 + 3 / (3/delta)):
+                            break
                         tmp = []
-                        tmp.append(Conflict(comb[0],k,-1000,float("inf"),2))
+                        for c in comb:
+                            
+                            tmp.append(Conflict(c[0],k,-1000,float("inf"),2))
                         
                         # print(comb,"cant visit")
                         # exit()
                         conflicts.append(tmp)
                     # exit()
-                    break
+                    
         if not flag and not check_1:
             
-            # print("solution for 1 found")
+            print("solution for 1 found")
             # print(len(solutions),32//(delta**2))
             sol.visitable_stages[:,:] = 0
             sol.visitable_stages[:,0] = 1
@@ -241,20 +253,30 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     sol.visitable_stages[t[0]][k] = 1
             if sol.visitable_stages.data.tobytes() in solutions_considered:
                 continue
+            for nd in g.nodes.values():
+                partition_node = nd.properties["partition"]
+                for ag in agents:
+                    if sol.visitable_stages[ag.idx][partition_node] == 0:
+                        sol.visitable[ag.idx][nd.idx] = 0
+            # print(sol.visitable)
+            # print(sol.visitable_stages)
             solutions_considered[sol.visitable_stages.data.tobytes()] = True
             solutions.append(sol)
             continue
-        impossible = False
+        
         
         if check_1 and not flag:
             # type 1 constraints
             for k in range(len(g.nodes)):
                 # continue
-                if flag:
-                    break
+                
                 if g.nodes[k].properties["partition"] == 0:
                     continue
                 if len(count_per_node[k]) > memory:
+                    if flag == True:
+                        heuristic += 0.0001 * (len(count_per_node[k]) - memory)
+                        # heuristic += 0.0001
+                        continue 
                     # a node has memory exceeded
                     flag = True
                     # print(k)
@@ -281,17 +303,16 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
     
                         break
                     count_per_node[k] = [ t for t in count_per_node[k] if t.ag not in exclude_agents]
-                    
-                    for c in count_per_node[k][:-1]:
-                        
-
-                        
+                    # [:ttl_count-(memory-1)], ttl_agents - memory)
+                    for comb in itertools.combinations(count_per_node[k], 1 if delta > 1 else ttl_agents - memory):
+                        if len(conflicts) >  (2):
+                            break
                         tmp = []
-                        
-                        tmp.append(Conflict(c.ag,k,-1000,float("inf"),1))
+                        for c in comb:
+                            tmp.append(Conflict(c.ag,k,-1000,float("inf"),1))
                         
                         conflicts.append(tmp)
-                    break
+                    
         if impossible:
             continue
         
@@ -374,7 +395,8 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 return final_solutions
             continue
         for c in conflicts:
-            
+            if len(c) == 0:
+                continue
             tmpvisitable_stages = deepcopy(sol.visitable_stages.copy())
             tmpvisitable = deepcopy(sol.visitable.copy())
             for conf in c:
@@ -473,7 +495,10 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             speeds.sort(key=lambda el: el[1],reverse= True)
             # count_col = count_conflicts(g,results,count_per_node) if conflict_3 else 0
             # print(count_col)
-            heapq.heappush(h,CBS_item(cost,-len(comb) if limit_TC1 else 0,results,comb, tmpvisitable, tmpvisitable_stages, "",speeds,conflict_3 ))
+            extra_h = np.sum(tmpvisitable)
+            if extra_h == tmpvisitable.shape[0]*tmpvisitable.shape[1]:
+                extra_h = 0
+            heapq.heappush(h,CBS_item(cost + heuristic + extra_h/(100**delta),-len(comb) if limit_TC1 else 0,results,comb, tmpvisitable, tmpvisitable_stages, "",speeds,conflict_3 ))
 
 
     

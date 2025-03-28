@@ -9,7 +9,7 @@ do
     touch "log$i.txt"
     touch "ERROR_LOG_$i.txt"
     touch "out$i.txt"
-    (sleep 1; python -u "trainer.py" $i $3 "geo-distributed" $4 >"out$i.txt") &
+    (sleep 1; python -u "trainer.py" $i $3 "geo-distributed" $4 $5 >"out$i.txt") &
 
 
 done

@@ -19,8 +19,9 @@ from schedulers.communication_costs import *
 
 # LLaMa 1.5B parameters:
 seq_l = 4096
-n_layers = 4 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
+n_layers = 3 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
 batch_size = int(argv[4])
+device = argv[5]
 dmodel = 2048
 num_heads = 16
 
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 
     communication_distribution = argv[3]
     loop = asyncio.new_event_loop()
-    with open(f"25_communication_{batch_size}_samples_llama_1_5b.json", 'r') as file:
+    with open(f"schedule.json", 'r') as file:
         config = json.load(file)
     def delay_map(currid,otherid):
         p1 = config["locations"][int(currid)]
@@ -151,8 +152,8 @@ if __name__ == '__main__':
         gossip.set_lower(protocol)
         stream = StreamProtocol(False)
         stream.set_lower(gossip)
-        delayer= DelayProtocol(delay_map,True)
-        delayer.set_lower(stream)
+        # delayer= DelayProtocol(delay_map,True)
+        # delayer.set_lower(stream)
         n = Peer(("127.0.0.1", 10015))
         if curr_id != 0:
             gossip.bootstrap_peers.append(n)
@@ -163,7 +164,7 @@ if __name__ == '__main__':
 
         queue_in = Queue(1024)
         queue_out = Queue(1024)
-        device = "cuda"
+        
         # if curr_id > 2:
         #     device = "cuda:1"
         # if curr_id > 5:
@@ -180,7 +181,7 @@ if __name__ == '__main__':
         #     device = "cuda:7"
         subprocess = Process(target=run_p,args=(n.addr[0],partitions,queue_out,queue_in,curr_id,own_stage,seq_l,n_layers,batch_size,dmodel,num_heads,memory,compute_time,send_mbs,cost_map, device)) 
         trainingp = PPProtocl(world_size, own_stage, commfunc, None, len(partitions[0]), memory, queue_in, queue_out, subprocess, MB_SEND_COUNT=send_mbs, dp_order=rank_order)
-        trainingp.set_lower(delayer)
+        trainingp.set_lower(stream)
         if setting == "ca-partial-new":
             trainingp.p_len = p_len
             trainingp.compute_time = compute_time
