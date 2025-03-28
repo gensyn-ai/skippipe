@@ -180,6 +180,7 @@ class SubP(object):
                     loss = causalLLMLoss(ret,y,vocab_size=self.ds.tokenizer.vocab_size)
                     loss_report = loss.item()
                     loss = loss / self.mb_count
+                    loss.backward()
                     tm2 = time()
                     if tm2 - tm1 < (self.process_time)/4:
                         sleep((self.process_time)/4 - (tm2 - tm1))
