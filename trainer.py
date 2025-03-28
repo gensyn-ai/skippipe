@@ -19,7 +19,7 @@ from schedulers.communication_costs import *
 
 # LLaMa 1.5B parameters:
 seq_l = 4096
-n_layers = 3 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
+n_layers = 4 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
 batch_size = int(argv[4])
 device = argv[5]
 dmodel = 2048
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         stream.set_lower(gossip)
         # delayer= DelayProtocol(delay_map,True)
         # delayer.set_lower(stream)
-        n = Peer(("127.0.0.1", 10015))
+        n = Peer(("10.132.0.4", 10015))
         if curr_id != 0:
             gossip.bootstrap_peers.append(n)
             time.sleep(1)
