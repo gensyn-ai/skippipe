@@ -141,7 +141,7 @@ class ComNode(object):
                 self.processed.append((mb.tm, mb.tm + (self.comp)*1.5, mb.back, mb.uniqid))
                 self.processed_total += 1
                 v = (mb.tm, mb.tm + (self.comp)*1.5)
-                self.received_sent[mb.uniqid] = (mb.tm, mb.tm + (self.comp)*1.5)
+                self.received_sent[mb.uniqid] = (mb.tm, mb.tm + (self.comp)*1.5, "BACK")
                 self.memory += 1
             if mb.tm_receive > 1000:
                 self.last_tm = v[1]+0.09
@@ -165,8 +165,8 @@ def run_simulation(nds, partitions, cost_matrix):
         count = 0
         for nd in partitions[0]: 
             count += nds[nd].processed_total
-        if count == 36:
-            break
+        # if count == 42:
+        #     break
         for _ in range(15):
 
             for idx in range(len(nds)):
@@ -184,8 +184,8 @@ def run_simulation(nds, partitions, cost_matrix):
     #                 exit()
     slowest_mb = None
     for nd in partitions[0]:    
-        # print(nd,"received", len(nds[nd].received_sent))
-        # print(nd, len(nds[nd].received_sent),nds[nd].received_sent)
+        print(nd,"received", len(nds[nd].received_sent))
+        print(nd, len(nds[nd].received_sent),nds[nd].received_sent)
         # print(nds[nd].initial_sends)
         for k,v in nds[nd].received_sent.items():
             
