@@ -220,7 +220,7 @@ def a_star_modified(g: Graph, start_idx, heuristic, agidx, dt = 0, conflicts: Li
                 count_swaps += 1
                 number_of_swaps += (frontier-g.nodes[curr].properties["partition"]) # the distance of the swap
             partitions.append(g.nodes[curr].properties["partition"])
-        if number_of_swaps > 2 or furthest_swap > 1 or count_swaps > 1:
+        if number_of_swaps > 2 or furthest_swap > 1 or count_swaps > 2:
             
             continue
         # if number_of_skips > max_partition+1 - lng:
@@ -245,7 +245,7 @@ def a_star_modified(g: Graph, start_idx, heuristic, agidx, dt = 0, conflicts: Li
                 if g.nodes[edg.n2.idx].properties["partition"] in partitions:
                     
                     continue
-                if abs(g.nodes[edg.n2.idx].properties["partition"] - frontier) > 2:
+                if abs(g.nodes[edg.n2.idx].properties["partition"] - frontier) > 4:
                     continue
                 heapq.heappush(h,a_star_item_modified(el.time + 2*edg.w + 1.5*g.nodes[el.idx].weight + el.edges_so_far, el.time  + edg.w,el.edges_so_far + edg.w + 1.5*g.nodes[el.idx].weight,el.idx,edg.n2.idx,edg,False,el.path.copy() + [edg]))
             else: # undirected graphs (our case)
@@ -258,7 +258,7 @@ def a_star_modified(g: Graph, start_idx, heuristic, agidx, dt = 0, conflicts: Li
                         continue
                     if len(el.path) == lng: # path length has been reached but we are not considering start... continue
                         continue
-                    if number_of_swaps > 1 and g.nodes[edg.n2.idx].properties["partition"] < frontier: # we will exceed our budget!
+                    if number_of_swaps > 2 and g.nodes[edg.n2.idx].properties["partition"] < frontier: # we will exceed our budget!
                         continue
                     if visitable_stages[agidx][g.nodes[edg.n2.idx].properties["partition"]] == 0 :
                         
@@ -279,7 +279,7 @@ def a_star_modified(g: Graph, start_idx, heuristic, agidx, dt = 0, conflicts: Li
                         continue
                     if len(el.path) == lng:
                         continue
-                    if number_of_swaps > 1 and g.nodes[edg.n1.idx].properties["partition"] < frontier:
+                    if number_of_swaps > 2 and g.nodes[edg.n1.idx].properties["partition"] < frontier:
                         continue
                     if visitable_stages[agidx][g.nodes[edg.n1.idx].properties["partition"]] == 0:
                         continue

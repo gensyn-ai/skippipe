@@ -24,33 +24,33 @@ class DP_optim(object):
     def step(self):
         tmp = []
         t1 = time()
-        # with no_grad():
-        #     # TODO: ensure that models are the same...
-        #     for param in self.net.parameters():
-        #         if param.grad == None:
-        #             tmp.append(zeros_like(param).view(-1).float())
+        with no_grad():
+            # TODO: ensure that models are the same...
+            for param in self.net.parameters():
+                if param.grad == None:
+                    tmp.append(zeros_like(param).view(-1).float())
                                     
-        #             continue
-        #         tmp.append(param.grad.view(-1).float())
-        #         param.grad = None
-        # prev_grad = cat(tmp).to("cpu")
-        # sz = len(prev_grad)*8 # size in bytes
+                    continue
+                tmp.append(param.grad.view(-1).float())
+                param.grad = None
+        prev_grad = cat(tmp).to("cpu")
+        sz = len(prev_grad)*8 # size in bytes
         
         barrier()
-        # all_reduce(prev_grad, op = ReduceOp.SUM, group=self.dp_group.group)
+        all_reduce(prev_grad, op = ReduceOp.SUM, group=self.dp_group.group)
         
-        # tmp = split(prev_grad, self.len_sizes)
-        # with no_grad():
+        tmp = split(prev_grad, self.len_sizes)
+        with no_grad():
             
-        #     for i, param in enumerate(self.net.parameters()):
-        #         param.grad = tmp[i].view(self.sizes[i]).to(param.device).to(param.data.dtype)/self.dp_group.g_size
+            for i, param in enumerate(self.net.parameters()):
+                param.grad = tmp[i].view(self.sizes[i]).to(param.device).to(param.data.dtype)/self.dp_group.g_size
                 
-        #     clip_grad_norm_(self.net.parameters(), 1)
-        #     self.optimizer.step()
-        # self.iteration += 1
+            clip_grad_norm_(self.net.parameters(), 1)
+            self.optimizer.step()
+        self.iteration += 1
         self.optimizer.step()
         t2 = time()
-        # self.dp_group.compensate(t1,t2,sz) # compensate for communication
+        self.dp_group.compensate(t1,t2,sz) # compensate for communication
     
     def sync(self):
         barrier()

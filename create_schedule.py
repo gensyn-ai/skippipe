@@ -14,14 +14,14 @@ random.seed(5) # recommended is 5 as that is what we used in our experiments
 np.random.seed(5)
 
 # ----- MODIFY FROM HERE ------
-PAT_LENGTH = 4
+PAT_LENGTH = 6
 memory = 3 # memory per device
 
 
-LAYERS_PER_DEVICE = 4
-SAMPLES_IN_MB = 2
+LAYERS_PER_DEVICE = 3
+SAMPLES_IN_MB = 1
 MB_COUNT = 6
-NUMBER_OF_NODES = 20
+NUMBER_OF_NODES = 42
 
 
 DP_SIZE_IN_BYTES = 1346446748
@@ -31,8 +31,8 @@ MB_SIZE_IN_BYTES = 16777324
 
 # 33,554,538
 FACTOR = DP_SIZE_IN_BYTES/(MB_SIZE_IN_BYTES*SAMPLES_IN_MB*MB_COUNT)
-# partition_sizes = [7,5,5,5,5,5,5,5] # Number of devices per partition
-partition_sizes = [5,3,3,3,3,3]
+partition_sizes = [7,5,5,5,5,5,5,5]
+# partition_sizes = [5,3,3,3,3,3]
 MAX_MB_PER_STAGE = partition_sizes[1] * memory
 
 assert sum(partition_sizes) == NUMBER_OF_NODES
@@ -45,7 +45,6 @@ setting = "geo-distributed"
 # 5-clusters
 # ----- TO HERE -------
 locations = get_locations(setting)
-locations = ['Belgium', 'Canada', 'Germany', 'Iowa', 'Japan', 'LA', 'NL', 'Oregon', 'Singapore', 'Taiwan', 'London', 'Australia']
 computations = get_computations(setting)
 # get nodes:
 node_list = []
@@ -142,6 +141,9 @@ for idx, p in enumerate(ret):
         g2.nodes[nd].properties["partition"] = idx
 tmp.sort()
 
+import json
+with open(f"2_communication_{SAMPLES_IN_MB}_samples_llama_1_5b.json","w") as fd:
+    json.dump(output,fd,indent=2)
 
 # COLLISION AWARE:
 agents = []
@@ -287,73 +289,73 @@ output["non-ca-paths"] = paths
 
 
 # random AWARE:
-# agents = []
-# paths_random = []
+agents = []
+paths_random = []
 
 
-# # print(possible_paths)
+# print(possible_paths)
 
-# agents = []
-# for num,idx in enumerate(ret[0]):
+agents = []
+for num,idx in enumerate(ret[0]):
 
-#     for k in range(3):
-#         agents.append(Agent(k + 3*num, idx, k*wm[idx]))
+    for k in range(3):
+        agents.append(Agent(k + 3*num, idx, k*wm[idx]))
 
-# solutions: CBS_item = CBS(g2,agents,lambda x1,x2: cost_matrix[x1][x2],ret,constraints=[True,True,False],path_l=PAT_LENGTH,memory=memory,mb_per_stage_max=MAX_MB_PER_STAGE,limit_TC1=True)
-# visits_per_node = {}
-# for ag_sol in solutions.solution:
+solutions: CBS_item = CBS(g2,agents,lambda x1,x2: cost_matrix[x1][x2],ret,constraints=[True,True,False],path_l=PAT_LENGTH,memory=memory,mb_per_stage_max=MAX_MB_PER_STAGE,limit_TC1=True)
+visits_per_node = {}
+for ag_sol in solutions.solution:
 
-#     for nd in ag_sol[1]:
+    for nd in ag_sol[1]:
                 
-#         if nd[0] not in visits_per_node:
-#             visits_per_node[nd[0]] = []
-#         visits_per_node[nd[0]].append((ag_sol[2],nd[1])) 
-# for v in visits_per_node.values():
-#     v.sort(key=lambda el: el[1])
-# output["random-processing-order"] = visits_per_node
-# nds = {}
-# for idx in range(len(node_list)):
-#     nds[idx] = ComNode(MAIN_WM[idx],idx,3)
+        if nd[0] not in visits_per_node:
+            visits_per_node[nd[0]] = []
+        visits_per_node[nd[0]].append((ag_sol[2],nd[1])) 
+for v in visits_per_node.values():
+    v.sort(key=lambda el: el[1])
+output["random-processing-order"] = visits_per_node
+nds = {}
+for idx in range(len(node_list)):
+    nds[idx] = ComNode(MAIN_WM[idx],idx,3)
 
-# paths = {}
-# for ag in solutions.solution:
-#     for d in range(2):
-#         path = {}
-#         prv = None
-#         for t in ag[1]:
-#             t = t[0]
-#             if prv == None:
-#                 prv = t
-#                 continue
-#             if t == agents[ag[2]].start_idx:
-#                 break
-#             path[prv] = t
-#             prv = t
-#         # print(path)
-#         # print(ag[2], agents[ag[2]].start_idx)
-#         tmp = MB(d*100 + ag[2],path,agents[ag[2]].start_idx)
-#         tmp.tm = d*2.5 + agents[ag[2]].dt
-#         tmp.tm_receive = 10000
-#         paths[ag[2]] = path
-#         nds[agents[ag[2]].start_idx].receive(tmp)
+paths = {}
+for ag in solutions.solution:
+    for d in range(2):
+        path = {}
+        prv = None
+        for t in ag[1]:
+            t = t[0]
+            if prv == None:
+                prv = t
+                continue
+            if t == agents[ag[2]].start_idx:
+                break
+            path[prv] = t
+            prv = t
+        # print(path)
+        # print(ag[2], agents[ag[2]].start_idx)
+        tmp = MB(d*100 + ag[2],path,agents[ag[2]].start_idx)
+        tmp.tm = d*2.5 + agents[ag[2]].dt
+        tmp.tm_receive = 10000
+        paths[ag[2]] = path
+        nds[agents[ag[2]].start_idx].receive(tmp)
 
 
-# output["random-expected-time"] = run_simulation(nds,ret,cost_matrix)
-# print("EXPECTED TIME RANDOM", output["random-expected-time"])
+output["random-expected-time"] = run_simulation(nds,ret,cost_matrix)
+print("EXPECTED TIME RANDOM", output["random-expected-time"])
+for k,v in nds.items():
+            # if k in output["partitions"][0]:
+                # assert len(v.received_sent) == 6
+                # print(nds[k].processed)
+            visits_per_node[k] = len(v.received_sent)
+
+visits_per_node = {}
+
 # for k,v in nds.items():
-#             # if k in output["partitions"][0]:
-#                 # assert len(v.received_sent) == 6
-#                 # print(nds[k].processed)
-#             visits_per_node[k] = len(v.received_sent)
-
-# visits_per_node = {}
-
-# # for k,v in nds.items():
-# #     print(k,v.processed)
-# output["random-mb-per-node"] = visits_per_node
-# output["random-paths"] = paths
+#     print(k,v.processed)
+output["random-mb-per-node"] = visits_per_node
+output["random-paths"] = paths
 
 # save to JSON
 import json
-with open(f"communication_{SAMPLES_IN_MB}_samples_llama_1_5b.json","w") as fd:
+with open(f"2_communication_{SAMPLES_IN_MB}_samples_llama_1_5b.json","w") as fd:
     json.dump(output,fd,indent=2)

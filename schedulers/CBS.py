@@ -115,7 +115,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             count_per_partitions[v].clear()
         
         
-        if (len(solutions) >= 16 and not check_1) or (not check_1 and len(h) == 1 and len(solutions) > 1):
+        if (len(solutions) >= 16//delta and not check_1) or (not check_1 and len(h) == 1 and len(solutions) > 1):
             print(len(solutions),"viable solutions found")
             h = []
             solutions_considered.clear()
@@ -130,7 +130,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             check_1 = True
             
         sol = heapq.heappop(h)
-        # print(sol.dist, len(h),curr_smallest)
+        print(sol.dist, len(h),curr_smallest)
         
         if not check_1:
             # if len(sol.conflicts) > 1 and sol.visitable_stages.data.tobytes() in visited:
@@ -201,7 +201,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 if len(count_per_partitions[k]) > mb_per_stage_max:
                     if flag:
                         # heuristic += 0.001 * (len(count_per_partitions[k]) - mb_per_stage_max)
-                        heuristic += 0.0001
+                        heuristic += 0.001
                         continue
                     # we have found a partition with more than the max nodes per stage
                     flag = True
@@ -226,7 +226,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     
                     for comb in itertools.combinations(count_per_partitions[k],1 if delta > 1 else ttl_count - mb_per_stage_max):
                         # print(comb)
-                        if len(conflicts) > (1 + 3 / (3/delta)):
+                        if len(conflicts) > (2):
                             break
                         tmp = []
                         for c in comb:
@@ -274,7 +274,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     continue
                 if len(count_per_node[k]) > memory:
                     if flag == True:
-                        heuristic += 0.0001 * (len(count_per_node[k]) - memory)
+                        heuristic += 0.001 * (len(count_per_node[k]) - memory)
                         # heuristic += 0.0001
                         continue 
                     # a node has memory exceeded
@@ -305,7 +305,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     count_per_node[k] = [ t for t in count_per_node[k] if t.ag not in exclude_agents]
                     # [:ttl_count-(memory-1)], ttl_agents - memory)
                     for comb in itertools.combinations(count_per_node[k], 1 if delta > 1 else ttl_agents - memory):
-                        if len(conflicts) >  (2):
+                        if len(conflicts) >  (0):
                             break
                         tmp = []
                         for c in comb:
@@ -399,21 +399,26 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 continue
             tmpvisitable_stages = deepcopy(sol.visitable_stages.copy())
             tmpvisitable = deepcopy(sol.visitable.copy())
+            type_2 = False
             for conf in c:
                 if conf.type == 2:
                     # print(conf.agidx,"CANNOT VISIT",conf.ndix)
+                    
                     tmpvisitable_stages[conf.agidx][conf.ndix] = 0
                     # print(tmpvisitable_stages[conf.agidx])
                     for nd_p in partitions[conf.ndix]:
                         tmpvisitable[conf.agidx][nd_p] = 0
+                elif conf.type == 3:
+                    type_2 = True
                 elif conf.type == 1:
                     tmpvisitable[conf.agidx][conf.ndix] = 0
-                   
+                    type_2 = True
                     count = 0
                     for nd_p in partitions[g.nodes[conf.ndix].properties["partition"]]:
                         count += tmpvisitable[conf.agidx][nd_p]
                     if count == 0:
                         tmpvisitable_stages[conf.agidx][g.nodes[conf.ndix].properties["partition"]] = 0
+                
                         
                         
                         
@@ -495,8 +500,9 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             speeds.sort(key=lambda el: el[1],reverse= True)
             # count_col = count_conflicts(g,results,count_per_node) if conflict_3 else 0
             # print(count_col)
-            extra_h = np.sum(tmpvisitable)
-            if extra_h == tmpvisitable.shape[0]*tmpvisitable.shape[1] or delta > 1:
+            heuristic /= tmpvisitable.shape[1] 
+            extra_h = 0
+            if not type_2:
                 extra_h = 0
             heapq.heappush(h,CBS_item(cost + heuristic + extra_h/(100**delta),-len(comb) if limit_TC1 else 0,results,comb, tmpvisitable, tmpvisitable_stages, "",speeds,conflict_3 ))
 

@@ -19,7 +19,7 @@ from schedulers.communication_costs import *
 
 # LLaMa 1.5B parameters:
 seq_l = 4096
-n_layers = 4 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
+n_layers = 1 # this is per device... we did 6 stages, so 4 layers per device. Adjust this up to your needs
 batch_size = int(argv[4])
 device = argv[5]
 dmodel = 2048
@@ -48,9 +48,9 @@ if __name__ == '__main__':
         elif DELAY_BANDWIDTHS.get(p2+"-"+p1) != None:
             ret = DELAY_BANDWIDTHS.get(p2+"-"+p1)
         else:
-            ret = (10,0.900)
+            ret = (10,2.00)
 
-        return (ret[0] - 0.1,ret[1]/4) # we experience about 0.1 communication time, so remove it from the simulation
+        return (ret[0] - 0.1, ret[1]) # we experience about 0.1 communication time, so remove it from the simulation
     loc = config["locations"][curr_id]
     world = len(config["locations"])
     cost_map = [[0 for _ in range(world)] for _ in range(world)]
@@ -152,8 +152,8 @@ if __name__ == '__main__':
         gossip.set_lower(protocol)
         stream = StreamProtocol(False)
         stream.set_lower(gossip)
-        # delayer= DelayProtocol(delay_map,True)
-        # delayer.set_lower(stream)
+        delayer = DelayProtocol(delay_map,True)
+        delayer.set_lower(stream)
         n = Peer(("127.0.0.1", 10015))
         if curr_id != 0:
             gossip.bootstrap_peers.append(n)
@@ -165,29 +165,29 @@ if __name__ == '__main__':
         queue_in = Queue(1024)
         queue_out = Queue(1024)
         
-        # if curr_id > 2:
-        #     device = "cuda:1"
-        # if curr_id > 5:
-        #     device = "cuda:2"
-        # if curr_id > 7:
-        #     device = "cuda:3"
-        # if curr_id > 9:
-        #     device = "cuda:4"
-        # if curr_id > 11:
-        #     device = "cuda:5"
-        # if curr_id > 13:
-        #     device = "cuda:6"
-        # if curr_id > 15:
-        #     device = "cuda:7"
+        if curr_id > 5:
+            device = "cuda:1"
+        if curr_id > 10:
+            device = "cuda:2"
+        if curr_id > 15:
+            device = "cuda:3"
+        if curr_id > 21:
+            device = "cuda:4"
+        if curr_id > 26:
+            device = "cuda:5"
+        if curr_id > 32:
+            device = "cuda:6"
+        if curr_id > 37:
+            device = "cuda:7"
         subprocess = Process(target=run_p,args=(n.addr[0],partitions,queue_out,queue_in,curr_id,own_stage,seq_l,n_layers,batch_size,dmodel,num_heads,memory,compute_time,send_mbs,cost_map, device)) 
         trainingp = PPProtocl(world_size, own_stage, commfunc, None, len(partitions[0]), memory, queue_in, queue_out, subprocess, MB_SEND_COUNT=send_mbs, dp_order=rank_order)
-        trainingp.set_lower(stream)
+        trainingp.set_lower(delayer)
         if setting == "ca-partial-new":
             trainingp.p_len = p_len
             trainingp.compute_time = compute_time
         subprocess.start()
         
-        me = StreamNode(my_peer , trainingp,ip_addr="127.0.0.1", port = 10015 if curr_id == 0 else port)
+        me = StreamNode(my_peer , trainingp,ip_addr="0.0.0.0", port = 10015 if curr_id == 0 else port)
         # print( "TCP", me.tcp_port)
 
         
