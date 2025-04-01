@@ -14,14 +14,14 @@ random.seed(5) # recommended is 5 as that is what we used in our experiments
 np.random.seed(5)
 
 # ----- MODIFY FROM HERE ------
-PAT_LENGTH = 6
+PAT_LENGTH = 4
 memory = 3 # memory per device
 
 
 LAYERS_PER_DEVICE = 3
 SAMPLES_IN_MB = 1
 MB_COUNT = 6
-NUMBER_OF_NODES = 42
+NUMBER_OF_NODES = 20
 
 
 DP_SIZE_IN_BYTES = 1346446748
@@ -31,8 +31,7 @@ MB_SIZE_IN_BYTES = 16777324
 
 # 33,554,538
 FACTOR = DP_SIZE_IN_BYTES/(MB_SIZE_IN_BYTES*SAMPLES_IN_MB*MB_COUNT)
-partition_sizes = [7,5,5,5,5,5,5,5]
-# partition_sizes = [5,3,3,3,3,3]
+partition_sizes = [5,3,3,3,3,3]
 MAX_MB_PER_STAGE = partition_sizes[1] * memory
 
 assert sum(partition_sizes) == NUMBER_OF_NODES
