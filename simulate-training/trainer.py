@@ -1,6 +1,6 @@
 from simplellm.llama import SwapLLama, LLama
 from simplellm.tokenizers import SPTokenizer
-from simplellm.dataloaders import RedPyjama, PretrainDataset
+from simplellm.dataloaders import RedPyjamav2, PretrainDataset
 from sys import argv
 import torch.distributed as dist
 from torch import save, cuda, zeros_like, cat, mean, std
@@ -33,8 +33,8 @@ num_warmup_steps = 500
 
 tokenizer = SPTokenizer()
 padding_idx = tokenizer.eos_id
-train_ds = RedPyjama(tokenizer, batch_size=8, skip = 100, group="default", seq_l=ctx_size)
-val_ds = RedPyjama(tokenizer, batch_size=8, skip = 0, seq_l=ctx_size)
+train_ds = RedPyjamav2(tokenizer, batch_size=8, skip = 100, seq_l=ctx_size)
+val_ds = RedPyjamav2(tokenizer, batch_size=8, skip = 0, seq_l=ctx_size)
 net = LLama(SwapLLama,tokenizer.vocab_size, dmodel=dim, num_heads=kv_heads, n_layers=layers, ctx_size=ctx_size, padding_idx=padding_idx, device=device)
 with open("2_communication_8_samples_llama_500M.json","r") as fd:
     config = json.load(fd)
@@ -109,7 +109,7 @@ for itr in range(25_000):
             output = net(x, order = order)
         else:
             order = [kl for kl in range(layers_per_stage)]
-            mb = paths[mb // 2 + rank * 3]
+            mb = paths[str(mb // 2 + rank * 3)]
             for v in mb.values():
                 order += list(range(layers_per_stage * partitions[v], layers_per_stage * (1 + partitions[v])))
             print(mb)
