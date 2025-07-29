@@ -136,6 +136,7 @@ for itr in range(25_000):
     # Sync model across devices...
     for pi, param in enumerate(net.parameters()):
         param.grad = tmp[pi].view(sizes[pi]).to(device)
+    torch.nn.utils.clip_grad_norm_(net.parameters(),max_norm=1.0)
     optimizer.step()
     del tmp
     optimizer.zero_grad()
