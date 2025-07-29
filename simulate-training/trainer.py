@@ -11,6 +11,7 @@ from simplellm.utils import State
 import random
 from torch.optim import Adam
 import json
+from time import sleep
 from simplellm.losses import causalLLMLoss, perplexityLoss
 random.seed(42)
 State.set_seed(42)
@@ -39,10 +40,11 @@ with open("2_communication_8_samples_llama_500M.json","r") as fd:
     config = json.load(fd)
 paths = config["ca-paths"]
 partitions = config["partitions"]
+sleep(rank*10)
 tmp = {}
 for idx, p in enumerate(partitions):
     for nd in p:
-        tmp[p] = idx
+        tmp[nd] = idx
 partitions = tmp
 sizes = []
 len_sizes = []
