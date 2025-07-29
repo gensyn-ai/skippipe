@@ -80,7 +80,7 @@ for itr in range(25_000):
             order = list(range(layers))
             val_dl = iter(val_ds)
             for _ in range(100):
-                x = next(val_dl)
+                x = next(val_dl).to(device)
                 target = x.detach().clone()
                 x = net(x, order = order)
                 loss_hist.append(perplexityLoss(x,target).item())
@@ -94,13 +94,13 @@ for itr in range(25_000):
         for k in range(world_size):
             try:
                 if k == rank:
-                    x = next(train_dl)
+                    x = next(train_dl).to(device)
                 else:
                     next(train_dl)
             except StopIteration:
                 train_dl = iter(train_ds)
                 if k == rank:
-                    x = next(train_dl)
+                    x = next(train_dl).to(device)
                 else:
                     next(train_dl)
         target = x.detach().clone()
