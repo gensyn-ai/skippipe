@@ -12,7 +12,7 @@ import random
 from torch.optim import AdamW
 import json
 from time import sleep
-from transformers import LlamaModel, LlamaConfig
+from transformers import LlamaForCausalLM, LlamaConfig
 from simplellm.losses import causalLLMLoss, perplexityLoss
 random.seed(42)
 State.set_seed(42)
@@ -37,7 +37,7 @@ padding_idx = tokenizer.eos_id
 train_ds = RedPyjamav2(tokenizer, batch_size=8, skip = 100, seq_l=ctx_size, name="sample-1T")
 val_ds = RedPyjamav2(tokenizer, batch_size=8, skip = 0, seq_l=ctx_size, name="sample-1T")
 configuration = LlamaConfig(hidden_size=dim,num_attention_heads=16,num_hidden_layers=24,max_position_embeddings=1024, eos_token_id=padding_idx)
-net = LlamaModel(configuration).to(device)
+net = LlamaForCausalLM(configuration).to(device)
 # net = LLama(SwapLLama,tokenizer.vocab_size, dmodel=dim, num_heads=kv_heads, n_layers=layers, ctx_size=ctx_size, device=device)
 with open("2_communication_8_samples_llama_500M.json","r") as fd:
     config = json.load(fd)
