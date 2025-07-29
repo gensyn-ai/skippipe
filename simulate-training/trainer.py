@@ -85,8 +85,8 @@ for itr in range(25_000):
             for _ in range(100):
                 x = next(val_dl).to(device)
                 target = x.detach().clone()
-                x = net(x, order = order)
-                print(x)
+                x = net(x, order = order)['logits'][-1]
+                # print(x)
                 loss_hist.append(perplexityLoss(x,target).item())
             print(itr, "VALIDATION LOSS", sum(loss_hist)/len(loss_hist))
         save(net.state_dict(), "mdl.pth")
@@ -110,7 +110,7 @@ for itr in range(25_000):
         target = x.detach().clone()
         if skip == 0:
             order = list(range(layers))
-            output = net(x, order = order)['logits']
+            output = net(x, order = order)['logits'][-1]
         else:
             order = [kl for kl in range(layers_per_stage)]
             mb = paths[str(mb // 2 + rank * 3)]
@@ -119,7 +119,7 @@ for itr in range(25_000):
             # print(mb)
             # print(order)
             
-            output = net(x, order = order)['logits']
+            output = net(x, order = order)['logits'][-1]
 
 
         loss = causalLLMLoss(output, target, tokenizer.vocab_size) / mb_c
