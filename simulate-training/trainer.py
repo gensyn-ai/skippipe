@@ -85,7 +85,8 @@ for itr in range(25_000):
             for _ in range(100):
                 x = next(val_dl).to(device)
                 target = x.detach().clone()
-                x = net(x, order = order)['logits']
+                x = net(x, order = order)
+                print(x)
                 loss_hist.append(perplexityLoss(x,target).item())
             print(itr, "VALIDATION LOSS", sum(loss_hist)/len(loss_hist))
         save(net.state_dict(), "mdl.pth")
