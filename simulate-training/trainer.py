@@ -9,7 +9,7 @@ import traceback
 import os
 from simplellm.utils import State
 import random
-from torch.optim import Adam
+from torch.optim import AdamW
 import json
 from time import sleep
 from simplellm.losses import causalLLMLoss, perplexityLoss
@@ -27,7 +27,7 @@ layers = 24
 stages = 6
 layers_per_stage = layers // stages
 ctx_size = 1024
-lr = 3e-4
+lr = 0.0003
 mb_c = 6
 num_warmup_steps = 500
 
@@ -69,7 +69,7 @@ tmp = torch.split(tmp, len_sizes)
 for pi, param in enumerate(net.parameters()):
     param.data = tmp[pi].view(sizes[pi]).to(device)
 
-optimizer = Adam(net.parameters(),lr = lr, betas=(0.9, 0.999), weight_decay=0)
+optimizer = AdamW(net.parameters(),lr = lr, betas=(0.9, 0.999), weight_decay=0)
 train_dl = iter(train_ds)
 for itr in range(25_000):
     optimizer.zero_grad()
