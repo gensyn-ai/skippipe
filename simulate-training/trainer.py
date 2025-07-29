@@ -40,7 +40,7 @@ with open("2_communication_8_samples_llama_500M.json","r") as fd:
 paths = config["ca-paths"]
 partitions = config["partitions"]
 tmp = {}
-for idx, p in partitions:
+for idx, p in enumerate(partitions):
     for nd in p:
         tmp[p] = idx
 partitions = tmp
