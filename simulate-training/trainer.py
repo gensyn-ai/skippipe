@@ -131,11 +131,11 @@ for itr in range(25_000):
         tmp.append(param.grad.view(-1))
 
     tmp = cat(tmp)
-    dist.all_reduce(tmp, op = dist.ReduceOp.AVG)
+    dist.all_reduce(tmp, op = dist.ReduceOp.SUM)
     tmp = torch.split(tmp, len_sizes)
     # Sync model across devices...
     for pi, param in enumerate(net.parameters()):
-        param.grad = tmp[pi].view(sizes[pi]).to(device)
+        param.grad = tmp[pi].view(sizes[pi]).to(device)/world_size
     torch.nn.utils.clip_grad_norm_(net.parameters(),max_norm=1.0)
     optimizer.step()
     del tmp
