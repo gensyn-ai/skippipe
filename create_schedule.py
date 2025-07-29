@@ -17,17 +17,21 @@ np.random.seed(5)
 PAT_LENGTH = 4
 memory = 3 # memory per device
 
-
-LAYERS_PER_DEVICE = 3
-SAMPLES_IN_MB = 1
+dim = 1024
+kv_heads = 16
+layers = 24
+stages = 6
+ctx_size = 1024
+LAYERS_PER_DEVICE = 4
+SAMPLES_IN_MB = 8
 MB_COUNT = 6
 NUMBER_OF_NODES = 20
 
 
-DP_SIZE_IN_BYTES = 1346446748
+DP_SIZE_IN_BYTES = 4 * LAYERS_PER_DEVICE * 16779264
 
 # 1 sample activation size:
-MB_SIZE_IN_BYTES = 16777324
+MB_SIZE_IN_BYTES = 4 * dim * ctx_size
 
 # 33,554,538
 FACTOR = DP_SIZE_IN_BYTES/(MB_SIZE_IN_BYTES*SAMPLES_IN_MB*MB_COUNT)
@@ -144,9 +148,9 @@ import json
 with open(f"2_communication_{SAMPLES_IN_MB}_samples_llama_1_5b.json","w") as fd:
     json.dump(output,fd,indent=2)
 
-# COLLISION AWARE:
+# ---------------------------COLLISION AWARE:------------------
 agents = []
-paths_in_coarsened = 3 # for coarsening change the value
+paths_in_coarsened = 1 # for coarsening change the value
 
 
 delta = 3//paths_in_coarsened
@@ -229,7 +233,7 @@ for solutions in final_solutions:
 
 
 
-# non-ca-aware
+# # ------------------non-ca-aware-------------------------------
 agents = []
 for num,idx in enumerate(ret[0]):
 
@@ -287,7 +291,7 @@ output["non-ca-paths"] = paths
 
 
 
-# random AWARE:
+# ------------------random AWARE-------------------:
 agents = []
 paths_random = []
 
@@ -356,5 +360,5 @@ output["random-paths"] = paths
 
 # save to JSON
 import json
-with open(f"2_communication_{SAMPLES_IN_MB}_samples_llama_1_5b.json","w") as fd:
+with open(f"2_communication_{SAMPLES_IN_MB}_samples_llama_500M.json","w") as fd:
     json.dump(output,fd,indent=2)

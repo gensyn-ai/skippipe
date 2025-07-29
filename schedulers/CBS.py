@@ -59,7 +59,7 @@ def speed_ranking(speeds, el):
 def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [False, True, True], path_l = 4, memory = 3, mb_per_stage_max = 9,delta = 1,limit_TC1 = False):
     h: List[CBS_item] = []
     heapq.heapify(h)
-    print(mb_per_stage_max,len(agents))
+    # print(mb_per_stage_max,len(agents))
     visitable: Dict[int,List[int]] = np.full((len(agents),len(g.nodes)),1)
     visitable_stages = np.full((len(agents),len(partitions)),1)
     
@@ -70,7 +70,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
     curr = time.time()
     
     results = Parallel(n_jobs=len(agents))(delayed(a_star_modified)(g,a.start_idx, heuristic, a.idx, a.dt, conflicts, visitable, visitable_stages, path_l) for a in agents)
-    print(time.time()-curr)
+    # print(time.time()-curr)
     
     cost = 0
     speeds = []
@@ -115,7 +115,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
             count_per_partitions[v].clear()
         
         
-        if (len(solutions) >= 16//delta and not check_1) or (not check_1 and len(h) == 1 and len(solutions) > 1):
+        if (len(solutions) >= 32//delta and not check_1) or (not check_1 and len(h) == 1 and len(solutions) > 1):
             print(len(solutions),"viable solutions found")
             h = []
             solutions_considered.clear()
@@ -161,8 +161,9 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 elif nd[0] == first_node:
                     count += 1
                 count_per_partitions[g.nodes[nd[0]].properties["partition"]].append((ag_sol[2],nd[1]))
-                
-                _tmp = CountDC(ag_sol[2], nd[0], nd[1],  ag_sol[0], prv_nd, None)
+                # if check_1:
+                #     print(nd)
+                _tmp = CountDC(ag_sol[2], nd[0], nd[1],  nd[2], prv_nd, None)
                 count_per_node[nd[0]].append(_tmp)
                 if len(el_history) > 0:
                     el_history[-1].nxt_nd = nd[0]
@@ -201,7 +202,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 if len(count_per_partitions[k]) > mb_per_stage_max:
                     if flag:
                         # heuristic += 0.001 * (len(count_per_partitions[k]) - mb_per_stage_max)
-                        heuristic += 0.001
+                        # heuristic += 0.001
                         continue
                     # we have found a partition with more than the max nodes per stage
                     flag = True
@@ -274,7 +275,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     continue
                 if len(count_per_node[k]) > memory:
                     if flag == True:
-                        heuristic += 0.001 * (len(count_per_node[k]) - memory)
+                        heuristic += 0.01 * (len(count_per_node[k]) - memory)
                         # heuristic += 0.0001
                         continue 
                     # a node has memory exceeded
@@ -284,7 +285,8 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     this_partition = partitions[this_partition]
                     # print(sol.speeds)
                     count_per_node[k].sort(key = lambda el: speed_ranking(sol.speeds,el.ag),reverse=True)
-                    
+                    # print(count_per_node[k])
+                    # exit()
                     ttl_agents = len(count_per_node[k])
                     exclude_agents = []
                     for ag in count_per_node[k]:
@@ -305,7 +307,7 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                     count_per_node[k] = [ t for t in count_per_node[k] if t.ag not in exclude_agents]
                     # [:ttl_count-(memory-1)], ttl_agents - memory)
                     for comb in itertools.combinations(count_per_node[k], 1 if delta > 1 else ttl_agents - memory):
-                        if len(conflicts) >  (0):
+                        if len(conflicts) >  (1):
                             break
                         tmp = []
                         for c in comb:
@@ -483,8 +485,9 @@ def CBS(g:Graph, agents: list[Agent], heuristic, partitions, constraints = [Fals
                 curr_smallest = min(curr_smallest,tmp_cost)
                 if first_solution == None:
                     first_solution = curr_smallest
+                print(curr_smallest/first_solution)
                 
-                if curr_smallest < 0.92 * first_solution: # realistically you will seldom achieve greater speed up...
+                if curr_smallest < 0.88 * first_solution: # realistically you will seldom achieve greater speed up...
                     # TODO: find a better way to prune solutions to achieve lower scores
                     # once achieved 0.85 after an hour of running
                     # Pruning techniques would be much appreciated
