@@ -112,13 +112,13 @@ for itr in range(25_000):
             mb = paths[str(mb // 2 + rank * 3)]
             for v in mb.values():
                 order += list(range(layers_per_stage * partitions[v], layers_per_stage * (1 + partitions[v])))
-            print(mb)
-            print(order)
+            # print(mb)
+            # print(order)
             
             output = net(x, order = order)
 
 
-        loss = causalLLMLoss(output, x, tokenizer.vocab_size) / mb_c
+        loss = causalLLMLoss(output, target, tokenizer.vocab_size) / mb_c
         loss_hist += loss.item()
         loss.backward()
     print(itr,"TRAINING LOSS", loss_hist)
