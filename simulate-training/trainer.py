@@ -35,7 +35,7 @@ padding_idx = tokenizer.eos_id
 train_ds = RedPyjama(tokenizer, batch_size=8, skip = 100, group="default", seq_l=ctx_size)
 val_ds = RedPyjama(tokenizer, batch_size=8, skip = 0, seq_l=ctx_size)
 net = LLama(SwapLLama,tokenizer.vocab_size, dmodel=dim, num_heads=kv_heads, n_layers=layers, ctx_size=ctx_size, padding_idx=padding_idx, device=device)
-with open("2_communication_8_samples_llama_500M","r") as fd:
+with open("2_communication_8_samples_llama_500M.json","r") as fd:
     config = json.load(fd)
 paths = config["ca-paths"]
 partitions = config["partitions"]
