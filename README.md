@@ -1,14 +1,14 @@
 # SkipPipe: Partial and Reordered Pipelining Framework for Training LLMs in Heterogeneous Networks
-This repository contains the code and instructions to replicate experiments of the paper titled ["SkipPipe: Partial and Reordered Pipelining Framework for Training LLMs in Heterogeneous Networks"](https://arxiv.org/abs/2502.19913).
+This repository contains the code and instructions to replicate experiments of the paper titled ["SkipPipe: Partial and Reordered Pipelining Framework for Training LLMs in Heterogeneous Networks"](htt[...]
 
-SkipPipe introduces a fault tolerant, pipeline parallel method that skips and reorders stages dynamically to optimize training within decentralized environments. SkipPipe shows a 55% reduction in training time compared to standard pipeline methods within these environments, with no degradation in convergence.
+SkipPipe introduces a fault tolerant, pipeline parallel method that skips and reorders stages dynamically to optimize training within decentralized environments. SkipPipe shows a 55% reduction in trai[...]
 
-It is also highly fault tolerant - demonstrating robustness up to 50% node failure rate with only 7% perplexity loss at inference time (i.e. when half of the pipeline nodes for a single model are unavailable we only lose 7% perplexity running inference through the - now sparse - model).
+It is also highly fault tolerant - demonstrating robustness up to 50% node failure rate with only 7% perplexity loss at inference time (i.e. when half of the pipeline nodes for a single model are unav[...]
 
-Unlike existing data parallel methods, SkipPipe can accommodate large model training. Since it shards the model itself across nodes, rather than simply sharding the dataset, SkipPipe reduces the memory footprint on each individual node and removes the cap on model size - allowing models of theoretically infinite size to be built across distributed, and decentralised, infrastructure. 
+Unlike existing data parallel methods, SkipPipe can accommodate large model training. Since it shards the model itself across nodes, rather than simply sharding the dataset, SkipPipe reduces the memor[...]
 
-![SkipPipe Figure](/assests/skippipe.png)
-*An example of partial pipeline parallelism scheduling where each colored (solid or dashed) path represents a different microbatch. Each node in stage 0 sends out 2 microbatches, the first in solid, the second in dashed. Green backgrounds show the forward pass, while light orange - the backwards pass. For better visualisation, the loss and deembedding computations are omitted. Arrows show the prioritisation of the microbatches from forward to backward pass within the same node.")*
+![SkipPipe Figure](/assets/skippipe.png)
+*An example of partial pipeline parallelism scheduling where each colored (solid or dashed) path represents a different microbatch. Each node in stage 0 sends out 2 microbatches, the first in solid, t[...]
 
 ## Requirements
 
@@ -36,7 +36,7 @@ Start training with
 ./run.sh [FIRST DEVICE] [LAST DEVICE] [SETTING] [SAMPLES PER MICROBATCH]
 ```
 
-Which will start all nodes from FIRST DEVICE to LAST DEVICE on this machine with a given SETTING (*random* for DT-FM Skip, *ca-partial* for SkipPipe with TC2, *non-ca-partial* for SkipPipe without TC2, or *baseline* for DT-FM). 
+Which will start all nodes from FIRST DEVICE to LAST DEVICE on this machine with a given SETTING (*random* for DT-FM Skip, *ca-partial* for SkipPipe with TC2, *non-ca-partial* for SkipPipe without TC2[...]
 
 
 ## Publication
